@@ -4,6 +4,8 @@ import math
 import pygame
 from os import listdir
 from os.path import isfile, join
+#from readLevel import *
+
 pygame.init()
 
 pygame.display.set_caption("Platformer")
@@ -11,6 +13,7 @@ pygame.display.set_caption("Platformer")
 WIDTH, HEIGHT = 1000, 800
 FPS = 60
 PLAYER_VEL = 5
+level = 'levelOne.csv'
 
 window = pygame.display.set_mode((WIDTH, HEIGHT))
 
@@ -56,7 +59,7 @@ def get_block(size):
 class Player(pygame.sprite.Sprite):
     COLOR = (255, 0, 0)
     GRAVITY = 1
-    SPRITES = load_sprite_sheets("MainCharacters", "MaskDude", 32, 32, True)
+    SPRITES = load_sprite_sheets("MainCharacters", "NinjaFrog", 32, 32, True)
     ANIMATION_DELAY = 3
 
     def __init__(self, x, y, width, height):
@@ -73,7 +76,7 @@ class Player(pygame.sprite.Sprite):
         self.hit_count = 0
 
     def jump(self):
-        self.y_vel = -self.GRAVITY * 8
+        self.y_vel = -self.GRAVITY * 10
         self.animation_count = 0
         self.jump_count += 1
         if self.jump_count == 1:
@@ -127,8 +130,6 @@ class Player(pygame.sprite.Sprite):
         elif self.y_vel < 0:
             if self.jump_count == 1:
                 sprite_sheet = "jump"
-            elif self.jump_count == 2:
-                sprite_sheet = "double_jump"
         elif self.y_vel > self.GRAVITY * 2:
             sprite_sheet = "fall"
         elif self.x_vel != 0:
@@ -276,6 +277,18 @@ def handle_move(player, objects):
         if obj and obj.name == "fire":
             player.make_hit()
 
+import csv
+def getLevel(level):
+    array = []
+    floor = []
+    with open(level , mode ='r') as file:   
+        for lines in file.readlines():
+                lines = lines.strip('\n')
+                lines = lines.split('\t')
+                
+                array.append(lines)
+    
+    return array
 
 def main(window):
     clock = pygame.time.Clock()
@@ -286,10 +299,25 @@ def main(window):
     player = Player(100, 100, 50, 50)
     fire = Fire(100, HEIGHT - block_size - 64, 16, 32)
     fire.on()
-    floor = [Block(i * block_size, HEIGHT - block_size, block_size)
-             for i in range(-WIDTH // block_size, (WIDTH * 2) // block_size)]
-    objects = [*floor, Block(0, HEIGHT - block_size * 2, block_size),
-               Block(block_size * 3, HEIGHT - block_size * 4, block_size), fire]
+    
+    array = getLevel('levelOne.csv')
+    floor =[]
+    object = []
+    count = 0
+    for counter in range(len(array)):
+        for index in range(len(array[counter])):
+            if array[counter][index] == '0':
+                pass
+            elif array[counter][index] == '1':
+                count += 1
+            elif array[counter][index] == '2':
+                floor.append(Block(count * block_size, HEIGHT - block_size, block_size))
+                count += 1
+            elif array[counter][index] == '3':
+                object.append(Block(block_size * (index), HEIGHT - block_size * (counter +2), block_size))
+                print('Block at (x:', index,', y:', (HEIGHT -block_size * counter) / block_size, ')')\
+
+    objects = [*floor, *object]
 
     offset_x = 0
     scroll_area_width = 200
@@ -304,7 +332,7 @@ def main(window):
                 break
 
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_SPACE and player.jump_count < 2 or event.key == pygame.K_UP and player.jump_count < 2:
+                if event.key == pygame.K_SPACE and player.jump_count == 0 or event.key == pygame.K_UP and player.jump_count == 0:
                     player.jump()
 
         player.loop(FPS)
