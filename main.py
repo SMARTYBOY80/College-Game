@@ -1,7 +1,8 @@
 import os
 import random
 import math
-import pygame
+import pygame 
+import asyncio
 from os import listdir
 from os.path import isfile, join
 #from readLevel import *
@@ -290,7 +291,7 @@ def getLevel(level):
     
     return array
 
-def main(window):
+async def main(window):
     clock = pygame.time.Clock()
     background, bg_image = get_background("Blue.png")
 
@@ -299,26 +300,26 @@ def main(window):
     player = Player(100, 100, 50, 50)
     fire = Fire(100, HEIGHT - block_size - 64, 16, 32)
     fire.on()
-    
+        
     array = getLevel('levelOne.csv')
     floor =[]
     object = []
     count = 0
     for counter in range(len(array)):
         for index in range(len(array[counter])):
-            if array[counter][index] == '0':
-                pass
-            elif array[counter][index] == '1':
-                count += 1
-            elif array[counter][index] == '2':
-                floor.append(Block(count * block_size, HEIGHT - block_size, block_size))
-                count += 1
-            elif array[counter][index] == '3':
-                object.append(Block(block_size * (index), HEIGHT - block_size * (counter +2), block_size))
-                print('Block at (x:', index,', y:', (HEIGHT -block_size * counter) / block_size, ')')\
+                if array[counter][index] == '0':
+                    pass
+                elif array[counter][index] == '1':
+                    count += 1
+                elif array[counter][index] == '2':
+                    floor.append(Block(count * block_size, HEIGHT - block_size, block_size))
+                    count += 1
+                elif array[counter][index] == '3':
+                    object.append(Block(block_size * (index), HEIGHT - block_size * (counter +2), block_size))
+                    print('Block at (x:', index,', y:', (HEIGHT -block_size * counter) / block_size, ')')\
 
     objects = [*floor, *object]
-
+    
     offset_x = 0
     scroll_area_width = 200
 
@@ -343,9 +344,9 @@ def main(window):
         if ((player.rect.right - offset_x >= WIDTH - scroll_area_width) and player.x_vel > 0) or ((player.rect.left - offset_x <= scroll_area_width) and player.x_vel < 0):
             offset_x += player.x_vel
 
+        await asyncio.sleep(0)
     pygame.quit()
     quit()
 
 
-if __name__ == "__main__":
-    main(window)
+asyncio.run(main(window))
