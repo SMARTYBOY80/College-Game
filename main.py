@@ -15,7 +15,7 @@ WIDTH, HEIGHT = 1000, 800
 FPS = 60
 PLAYER_VEL = 5
 level = 'levelOne.csv'
-
+global window
 window = pygame.display.set_mode((WIDTH, HEIGHT))
 
 
@@ -75,6 +75,7 @@ class Player(pygame.sprite.Sprite):
         self.jump_count = 0
         self.hit = False
         self.hit_count = 0
+        self.lifes = 3
 
     def jump(self):
         self.y_vel = -self.GRAVITY * 10
@@ -115,6 +116,25 @@ class Player(pygame.sprite.Sprite):
         self.fall_count += 1
         self.update_sprite()
 
+    def death(self):
+        Black = (0, 0, 0)
+        pygame.draw.rect(window, Black, (0, 0, 1000, 800))
+        self.lifes -= 1
+        font = pygame.font.Font('freesansbold.ttf', 32)
+        if self.lifes < 0:
+            text = font.render("Game Over", True,(255, 255,255))
+            self.lifes =3
+        else:    
+            text = font.render(f'You Died  lives x{self.lifes}', True, (255, 255, 255))
+        textRect = text.get_rect()
+        textRect.center = (WIDTH // 2, HEIGHT // 2)
+        window.blit(text, textRect)
+        pygame.display.update()
+        pygame.time.wait(1000)
+
+
+
+    
     def landed(self):
         self.fall_count = 0
         self.y_vel = 0
@@ -291,16 +311,7 @@ def getLevel(level):
     
     return array
 
-async def main(window):
-    clock = pygame.time.Clock()
-    background, bg_image = get_background("Blue.png")
-
-    block_size = 96
-
-    player = Player(100, 100, 50, 50)
-    fire = Fire(100, HEIGHT - block_size - 64, 16, 32)
-    fire.on()
-        
+def loadLevel(level, block_size):
     array = getLevel('levelOne.csv')
     floor =[]
     object = []
@@ -316,12 +327,23 @@ async def main(window):
                     count += 1
                 elif array[counter][index] == '3':
                     object.append(Block(block_size * (index), HEIGHT - block_size * (counter +2), block_size))
-                    print('Block at (x:', index,', y:', (HEIGHT -block_size * counter) / block_size, ')')\
+                    print('Block at (x:', index,', y:', (HEIGHT -block_size * counter) / block_size, ')')
+    return object+floor
+                    
 
-    objects = [*floor, *object]
+
+async def main(window):
+    clock = pygame.time.Clock()
+    background, bg_image = get_background("Blue.png")
+    level = ['levelOne.csv', 'levelTwo.csv', 'levelThree.csv']
+    block_size = 96
+    objects = loadLevel(level[0], block_size)
+    player = Player(100, 100, 50, 50)
+   
     
     offset_x = 0
     scroll_area_width = 200
+
 
     run = True
     while run:
@@ -337,9 +359,18 @@ async def main(window):
                     player.jump()
 
         player.loop(FPS)
-        fire.loop()
+
         handle_move(player, objects)
+        
         draw(window, background, bg_image, player, objects, offset_x)
+
+        if player.rect.y > 800:
+            player.death()
+            player.rect.y = 100
+            player.y_vel = 0
+            player.rect.x = 100
+            offset_x = 0
+            
 
         if ((player.rect.right - offset_x >= WIDTH - scroll_area_width) and player.x_vel > 0) or ((player.rect.left - offset_x <= scroll_area_width) and player.x_vel < 0):
             offset_x += player.x_vel
