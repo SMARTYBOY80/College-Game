@@ -237,11 +237,12 @@ def get_background(name):
     return tiles, image
 
 
-def draw(window, background, bg_image, player, objects, offset_x):
+def draw(window, background, bg_image, player, object, offset_x):
     for tile in background:
         window.blit(bg_image, tile)
 
-    for obj in objects:
+    
+    for obj in object:
         obj.draw(window, offset_x)
 
     player.draw(window, offset_x)
@@ -298,10 +299,8 @@ def handle_move(player, objects):
         if obj and obj.name == "fire":
             player.make_hit()
 
-import csv
 def getLevel(level):
     array = []
-    floor = []
     with open(level , mode ='r') as file:   
         for lines in file.readlines():
                 lines = lines.strip('\n')
@@ -361,7 +360,6 @@ async def main(window):
         player.loop(FPS)
 
         handle_move(player, objects)
-        
         draw(window, background, bg_image, player, objects, offset_x)
 
         if player.rect.y > 800:
