@@ -404,7 +404,7 @@ def loadLevel(level, block_size, levelCount):
     return object+floor
                     
 
-def play(window):
+async def main(window):
     global jumpHeight, objects, finishedLevel, run
     jumpHeight = -7
     finishedLevel = False
@@ -459,21 +459,23 @@ def play(window):
         if ((player.rect.right - offset_x >= WIDTH - scroll_area_width) and player.x_vel > 0) or ((player.rect.left - offset_x <= scroll_area_width) and player.x_vel < 0):
             offset_x += player.x_vel
     
-    if finishedLevel:
-        levelNum += 1
+        if finishedLevel:
+            levelNum += 1
+            
+            Black = (0, 0, 0)
+            pygame.draw.rect(window, Black, (0, 0, 1000, 800))
+            font = pygame.font.Font('freesansbold.ttf', 32)
+    
+            text = font.render(f'well done you won i havent made lvl 2 yet so reset if you want', True, (255, 255, 255))
+            textRect = text.get_rect()
+            textRect.center = (WIDTH // 2, HEIGHT // 2)
+            window.blit(text, textRect)
+            pygame.display.update()
+            pygame.time.wait(5000)
+                
+            #loadLevel(level, 96, levelNum)
         
-        Black = (0, 0, 0)
-        pygame.draw.rect(window, Black, (0, 0, 1000, 800))
-        font = pygame.font.Font('freesansbold.ttf', 32)
-  
-        text = font.render(f'well done you won i havent made lvl 2 yet so reset if you want', True, (255, 255, 255))
-        textRect = text.get_rect()
-        textRect.center = (WIDTH // 2, HEIGHT // 2)
-        window.blit(text, textRect)
-        pygame.display.update()
-        pygame.time.wait(5000)
-               
-        #loadLevel(level, 96, levelNum)
+        asyncio.sleep(0)
 
         
 
@@ -553,7 +555,7 @@ def controls():
 
         pygame.display.update()   
 #s
-async def main(window):
+def pause():
     BG = pygame.image.load("assets/Menu/Background.png")
     while True:
         window.blit(BG, (0, 0))
@@ -594,7 +596,7 @@ async def main(window):
 
         pygame.display.update()
         
-        asyncio.sleep(0)
+
     
 
 
