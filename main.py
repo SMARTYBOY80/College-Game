@@ -405,6 +405,7 @@ def loadLevel(level, block_size, levelCount):
                     
 
 async def main(window):
+    pause(window)
     global jumpHeight, objects, finishedLevel, run
     jumpHeight = -7
     finishedLevel = False
@@ -459,23 +460,23 @@ async def main(window):
         if ((player.rect.right - offset_x >= WIDTH - scroll_area_width) and player.x_vel > 0) or ((player.rect.left - offset_x <= scroll_area_width) and player.x_vel < 0):
             offset_x += player.x_vel
     
-        if finishedLevel:
-            levelNum += 1
-            
-            Black = (0, 0, 0)
-            pygame.draw.rect(window, Black, (0, 0, 1000, 800))
-            font = pygame.font.Font('freesansbold.ttf', 32)
-    
-            text = font.render(f'well done you won i havent made lvl 2 yet so reset if you want', True, (255, 255, 255))
-            textRect = text.get_rect()
-            textRect.center = (WIDTH // 2, HEIGHT // 2)
-            window.blit(text, textRect)
-            pygame.display.update()
-            pygame.time.wait(5000)
-                
-            #loadLevel(level, 96, levelNum)
+    if finishedLevel:
+        levelNum += 1
         
-        asyncio.sleep(0)
+        Black = (0, 0, 0)
+        pygame.draw.rect(window, Black, (0, 0, 1000, 800))
+        font = pygame.font.Font('freesansbold.ttf', 32)
+  
+        text = font.render(f'well done you won i havent made lvl 2 yet so reset if you want', True, (255, 255, 255))
+        textRect = text.get_rect()
+        textRect.center = (WIDTH // 2, HEIGHT // 2)
+        window.blit(text, textRect)
+        pygame.display.update()
+        pygame.time.wait(5000)
+               
+        #loadLevel(level, 96, levelNum)
+    
+    await asyncio.sleep(0)
 
         
 
@@ -554,10 +555,13 @@ def controls():
                     
 
         pygame.display.update()   
-#s
-def pause():
+    
+def pause(window):
     BG = pygame.image.load("assets/Menu/Background.png")
-    while True:
+    running = True
+    while running:
+        
+    
         window.blit(BG, (0, 0))
         MENU_MOUSE_POS = pygame.mouse.get_pos()
 
@@ -585,7 +589,7 @@ def pause():
                 sys.exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if PLAY_BUTTON.checkForInput(MENU_MOUSE_POS):
-                    play(window)
+                    running = False
                 if OPTIONS_BUTTON.checkForInput(MENU_MOUSE_POS):
                     options()
                 if CONTROLS_BUTTON.checkForInput(MENU_MOUSE_POS):
@@ -596,8 +600,4 @@ def pause():
 
         pygame.display.update()
         
-
-    
-
-
 asyncio.run(main(window))
