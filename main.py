@@ -562,7 +562,7 @@ async def main(window):
         MENU_TEXT = font(100).render("MAIN MENU", True, "#b68f40")
         MENU_RECT = MENU_TEXT.get_rect(center=(500, 100))
 
-        PLAY_BUTTON = Button(image=pygame.image.load("assets\Menu\PlayRect.png"), pos=(500, 250), 
+        PLAY_BUTTON = Button(image=pygame.image.load("assets/Menu/PlayRect.png"), pos=(500, 250), 
                             text_input="PLAY", font=font(75), base_color="#d7fcd4", hovering_color="White")
         OPTIONS_BUTTON = Button(image=pygame.image.load("assets/Menu/OptionsRect.png"), pos=(500, 400), 
                             text_input="OPTIONS", font=font(75), base_color="#d7fcd4", hovering_color="White")
