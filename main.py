@@ -5,6 +5,7 @@ import pygame
 import asyncio
 from os import listdir
 from os.path import isfile, join
+import sys
 #from readLevel import *
 
 pygame.init()
@@ -15,7 +16,7 @@ WIDTH, HEIGHT = 1000, 800
 FPS = 60
 PLAYER_VEL = 5
 level = 'levelOne.csv'
-global window
+global window, Sprite
 window = pygame.display.set_mode((WIDTH, HEIGHT))
 
 
@@ -56,6 +57,42 @@ def get_block(size):
     surface.blit(image, (0, 0), rect)
     return pygame.transform.scale2x(surface)
 
+def get_apple(size):
+    path = join("assets", "Items", "Powerups", "Apple", "Apple.png")
+    image = pygame.image.load(path).convert_alpha()
+    surface = pygame.Surface((size, size), pygame.SRCALPHA, 32)
+    rect = pygame.Rect(0, 0, size, size)
+    surface.blit(image, (0, 0), rect)
+    return pygame.transform.scale2x(surface)
+
+def get_finish(size):
+    path = join("assets", "finish.png")
+    image = pygame.image.load(path).convert_alpha()
+    surface = pygame.Surface((size, size), pygame.SRCALPHA, 32)
+    rect = pygame.Rect(0, 0, size, size)
+    surface.blit(image, (-8, -15), rect)
+    return pygame.transform.scale2x(surface)
+
+
+class Burger(pygame.sprite.Sprite):
+    def __init__(self, x, y, width, height):
+        super().__init__()
+        self.rect = pygame.Rect(x, y, width, height)
+        self.image = pygame.Surface((width, height), pygame.SRCALPHA)
+        self.width = width
+        self.height = height
+        self.name = "burger"
+        self.image.blit(pygame.image.load("assets/enemeies/Burger.png"), (0, 0))
+        self.mask = pygame.mask.from_surface(self.image)
+        
+    def move(self, dx, dy):
+        self.rect.x += dx
+        self.rect.y += dy
+
+    def draw(self, win, offset_x):
+        win.blit(self.image, (self.rect.x - offset_x, self.rect.y))
+        
+        
 
 class Player(pygame.sprite.Sprite):
     COLOR = (255, 0, 0)
@@ -76,13 +113,16 @@ class Player(pygame.sprite.Sprite):
         self.hit = False
         self.hit_count = 0
         self.lifes = 3
+        self.timesDone = 0
 
     def jump(self):
-        self.y_vel = -self.GRAVITY * 10
+        if collide(self, objects, PLAYER_VEL * 2) != None and self.timesDone == 0 or collide(self, objects, -PLAYER_VEL * 2) != None and self.timesDone == 0:
+            self.jump_count = 0
+            self.timesDone += 1
+        self.y_vel = jumpHeight
         self.animation_count = 0
         self.jump_count += 1
-        if self.jump_count == 1:
-            self.fall_count = 0
+        self.fall_count = 0
 
     def move(self, dx, dy):
         self.rect.x += dx
@@ -139,6 +179,7 @@ class Player(pygame.sprite.Sprite):
         self.fall_count = 0
         self.y_vel = 0
         self.jump_count = 0
+        self.timesDone = 0
 
     def hit_head(self):
         self.count = 0
@@ -193,35 +234,56 @@ class Block(Object):
         self.mask = pygame.mask.from_surface(self.image)
 
 
-class Fire(Object):
-    ANIMATION_DELAY = 3
+class Button():
+	def __init__(self, image, pos, text_input, font, base_color, hovering_color):
+		self.image = image
+		self.x_pos = pos[0]
+		self.y_pos = pos[1]
+		self.font = font
+		self.base_color, self.hovering_color = base_color, hovering_color
+		self.text_input = text_input
+		self.text = self.font.render(self.text_input, True, self.base_color)
+		if self.image is None:
+			self.image = self.text
+		self.rect = self.image.get_rect(center=(self.x_pos, self.y_pos))
+		self.text_rect = self.text.get_rect(center=(self.x_pos, self.y_pos))
+
+	def update(self, screen):
+		if self.image is not None:
+			screen.blit(self.image, self.rect)
+		screen.blit(self.text, self.text_rect)
+
+	def checkForInput(self, position):
+		if position[0] in range(self.rect.left, self.rect.right) and position[1] in range(self.rect.top, self.rect.bottom):
+			return True
+		return False
+
+	def changeColor(self, position):
+		if position[0] in range(self.rect.left, self.rect.right) and position[1] in range(self.rect.top, self.rect.bottom):
+			self.text = self.font.render(self.text_input, True, self.hovering_color)
+		else:
+			self.text = self.font.render(self.text_input, True, self.base_color)
+
+class Apple(Object):
 
     def __init__(self, x, y, width, height):
-        super().__init__(x, y, width, height, "fire")
-        self.fire = load_sprite_sheets("Traps", "Fire", width, height)
-        self.image = self.fire["off"][0]
+        super().__init__(x, y, width, height, "apple")
+        self.apple = load_sprite_sheets("Items\\Powerups", "Apple", width, height)
+        block = get_apple(32)
+        self.image.blit(block, (0, 0))
         self.mask = pygame.mask.from_surface(self.image)
-        self.animation_count = 0
-        self.animation_name = "off"
-
-    def on(self):
-        self.animation_name = "on"
-
-    def off(self):
-        self.animation_name = "off"
-
-    def loop(self):
-        sprites = self.fire[self.animation_name]
-        sprite_index = (self.animation_count //
-                        self.ANIMATION_DELAY) % len(sprites)
-        self.image = sprites[sprite_index]
-        self.animation_count += 1
-
-        self.rect = self.image.get_rect(topleft=(self.rect.x, self.rect.y))
+        
+        
+class Finish(Object):
+    def __init__(self, x, y, width, height):
+        super().__init__(x, y, width, height, "finish")
+        block = get_finish(width)
+        self.image.blit(block, (0, 0))
         self.mask = pygame.mask.from_surface(self.image)
+        
+    def draw(self, win, offset_x):
+        win.blit(self.image, (self.rect.x - offset_x, self.rect.y))
 
-        if self.animation_count // self.ANIMATION_DELAY > len(sprites):
-            self.animation_count = 0
 
 
 def get_background(name):
@@ -291,27 +353,35 @@ def handle_move(player, objects):
         player.move_left(PLAYER_VEL)
     if keys[pygame.K_RIGHT] and not collide_right:
         player.move_right(PLAYER_VEL)
+        
 
     vertical_collide = handle_vertical_collision(player, objects, player.y_vel)
     to_check = [collide_left, collide_right, *vertical_collide]
 
     for obj in to_check:
-        if obj and obj.name == "fire":
-            player.make_hit()
+        if obj and obj.name == "finish":
+            global finishedLevel
+            finishedLevel = True
+            global run
+            run = False
+            print('Finished Level')
+            
+
+    
 
 def getLevel(level):
     array = []
     with open(level , mode ='r') as file:   
         for lines in file.readlines():
                 lines = lines.strip('\n')
-                lines = lines.split('\t')
+                lines = lines.split(',')
                 
                 array.append(lines)
     
     return array
 
-def loadLevel(level, block_size):
-    array = getLevel('levelOne.csv')
+def loadLevel(level, block_size, levelCount):
+    array = getLevel(level[levelCount])
     floor =[]
     object = []
     count = 0
@@ -327,16 +397,26 @@ def loadLevel(level, block_size):
                 elif array[counter][index] == '3':
                     object.append(Block(block_size * (index), HEIGHT - block_size * (counter +2), block_size))
                     print('Block at (x:', index,', y:', (HEIGHT -block_size * counter) / block_size, ')')
+                elif array[counter][index] == '4':
+                    object.append(Finish(block_size * (index), HEIGHT - block_size * (counter +2), 124, 124))
+                    print('Finish at (x:', index,', y:', (HEIGHT -block_size * counter) / block_size, ')')
+                    
     return object+floor
                     
 
-
-async def main(window):
+def play(window):
+    global jumpHeight, objects, finishedLevel, run
+    jumpHeight = -7
+    finishedLevel = False
     clock = pygame.time.Clock()
     background, bg_image = get_background("Blue.png")
     level = ['levelOne.csv', 'levelTwo.csv', 'levelThree.csv']
+    levelNum = 0
     block_size = 96
-    objects = loadLevel(level[0], block_size)
+    jump_active = False
+    jump_timer = 0
+    
+    objects = loadLevel(level, block_size, levelNum)
     player = Player(100, 100, 50, 50)
    
     
@@ -352,16 +432,22 @@ async def main(window):
             if event.type == pygame.QUIT:
                 run = False
                 break
-
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_SPACE and player.jump_count == 0 or event.key == pygame.K_UP and player.jump_count == 0:
+                if event.key == pygame.K_SPACE and player.jump_count < 2 or event.key == pygame.K_UP and player.jump_count < 2:
                     player.jump()
-
+                if event.key == pygame.K_ESCAPE:    
+                    run = False    
+                    
         player.loop(FPS)
 
         handle_move(player, objects)
         draw(window, background, bg_image, player, objects, offset_x)
 
+        if jump_active:
+            current_time = pygame.time.get_ticks()
+            if current_time - jump_timer > 5000: 
+                jump_active = False
+        
         if player.rect.y > 800:
             player.death()
             player.rect.y = 100
@@ -372,10 +458,142 @@ async def main(window):
 
         if ((player.rect.right - offset_x >= WIDTH - scroll_area_width) and player.x_vel > 0) or ((player.rect.left - offset_x <= scroll_area_width) and player.x_vel < 0):
             offset_x += player.x_vel
+    
+    if finishedLevel:
+        levelNum += 1
+        
+        Black = (0, 0, 0)
+        pygame.draw.rect(window, Black, (0, 0, 1000, 800))
+        font = pygame.font.Font('freesansbold.ttf', 32)
+  
+        text = font.render(f'well done you won i havent made lvl 2 yet so reset if you want', True, (255, 255, 255))
+        textRect = text.get_rect()
+        textRect.center = (WIDTH // 2, HEIGHT // 2)
+        window.blit(text, textRect)
+        pygame.display.update()
+        pygame.time.wait(5000)
+               
+        #loadLevel(level, 96, levelNum)
 
-        await asyncio.sleep(0)
-    pygame.quit()
-    quit()
+        
+
+ 
+def font(size):
+    return pygame.font.Font('freesansbold.ttf', size)  
+    
+    
+def options():
+    running=True
+    while running:
+
+        window.fill("white")
+        OPTIONS_MOUSE_POS = pygame.mouse.get_pos()
+
+        OPTIONS_TEXT = font(45).render("This is the OPTIONS screen.", True, "Black")
+        OPTIONS_RECT = OPTIONS_TEXT.get_rect(center=(500, 260))
+        window.blit(OPTIONS_TEXT, OPTIONS_RECT)
+
+        OPTIONS_BACK = Button(image=None, pos=(500, 460), 
+                            text_input="BACK", font=font(75), base_color="Black", hovering_color="Green")
+
+        OPTIONS_BACK.changeColor(OPTIONS_MOUSE_POS)
+        OPTIONS_BACK.update(window)
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if OPTIONS_BACK.checkForInput(OPTIONS_MOUSE_POS):
+                    running = False
+                    main(window)
+                    
+
+        pygame.display.update()    
+        
+def controls():
+    running=True
+    while running:
+
+        window.fill("white")
+        OPTIONS_MOUSE_POS = pygame.mouse.get_pos()
+
+        OPTIONS_TEXT = font(25).render("This is the Controls screen.", True, "Black")
+        OPTIONS_RECT = OPTIONS_TEXT.get_rect(center=(500, 50))
+        Movement = font(25).render("Use the arrow keys to move and up arrow or space bar to jump", True, "Black")
+        jumping = font(25).render("You can Double Jump by pressing Jump", True, "Black")
+        wallJump = font(25).render("You can wall jump by jumping into a wall and pressing jump (must be on first jump)", True, "Black")
+        paus = font(25).render("Press escape to pause", True, "Black")
+        Movement_RECT = Movement.get_rect(center=(500, 260))
+        jumping_RECT = jumping.get_rect(center=(500, 360))
+        wallJump_RECT = wallJump.get_rect(center=(500, 460))
+        paus_RECT = paus.get_rect(center=(500, 560))
+
+        window.blit(OPTIONS_TEXT, OPTIONS_RECT)
+        window.blit(Movement, Movement_RECT)
+        window.blit(jumping, jumping_RECT)
+        window.blit(wallJump, wallJump_RECT)
+        window.blit(paus, paus_RECT)
+
+        OPTIONS_BACK = Button(image=None, pos=(500, 700), 
+                            text_input="BACK", font=font(75), base_color="Black", hovering_color="Green")
+
+        OPTIONS_BACK.changeColor(OPTIONS_MOUSE_POS)
+        OPTIONS_BACK.update(window)
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if OPTIONS_BACK.checkForInput(OPTIONS_MOUSE_POS):
+                    running = False
+                    main(window)
+                    
+
+        pygame.display.update()   
+    
+async def main(window):
+    BG = pygame.image.load("assets/menu/Background.png")
+    while True:
+        window.blit(BG, (0, 0))
+        MENU_MOUSE_POS = pygame.mouse.get_pos()
+
+        MENU_TEXT = font(100).render("MAIN MENU", True, "#b68f40")
+        MENU_RECT = MENU_TEXT.get_rect(center=(500, 100))
+
+        PLAY_BUTTON = Button(image=pygame.image.load("assets/menu/Play Rect.png"), pos=(500, 250), 
+                            text_input="PLAY", font=font(75), base_color="#d7fcd4", hovering_color="White")
+        OPTIONS_BUTTON = Button(image=pygame.image.load("assets/menu/Options Rect.png"), pos=(500, 400), 
+                            text_input="OPTIONS", font=font(75), base_color="#d7fcd4", hovering_color="White")
+        CONTROLS_BUTTON = Button(image=pygame.image.load("assets/menu/Options Rect.png"), pos=(500, 550), 
+                            text_input="CONTROLS", font=font(75), base_color="#d7fcd4", hovering_color="White")
+        QUIT_BUTTON = Button(image=pygame.image.load("assets/menu/Quit Rect.png"), pos=(500, 700), 
+                            text_input="QUIT", font=font(75), base_color="#d7fcd4", hovering_color="White")
+
+        window.blit(MENU_TEXT, MENU_RECT)
+
+        for button in [PLAY_BUTTON, OPTIONS_BUTTON, CONTROLS_BUTTON, QUIT_BUTTON]:
+            button.changeColor(MENU_MOUSE_POS)
+            button.update(window)
+        
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if PLAY_BUTTON.checkForInput(MENU_MOUSE_POS):
+                    play(window)
+                if OPTIONS_BUTTON.checkForInput(MENU_MOUSE_POS):
+                    options()
+                if CONTROLS_BUTTON.checkForInput(MENU_MOUSE_POS):
+                    controls()
+                if QUIT_BUTTON.checkForInput(MENU_MOUSE_POS):
+                    pygame.quit()
+                    sys.exit()
+
+        pygame.display.update()
+    
 
 
 asyncio.run(main(window))
