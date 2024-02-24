@@ -13,13 +13,13 @@ Cache-Control: max-age=600
 x-proxy-cache: MISS
 X-GitHub-Request-Id: 0B36:2E952A:5B3CF98:5CE2265:65DA72FC
 Accept-Ranges: bytes
-Age: 1
-Date: Sat, 24 Feb 2024 22:51:42 GMT
+Age: 0
+Date: Sat, 24 Feb 2024 23:26:07 GMT
 Via: 1.1 varnish
-X-Served-By: cache-man4123-MAN
-X-Cache: MISS
+X-Served-By: cache-man4122-MAN
+X-Cache: HIT
 X-Cache-Hits: 0
-X-Timer: S1708815102.871304,VS0,VE716
+X-Timer: S1708817167.376332,VS0,VE119
 Vary: Accept-Encoding
-X-Fastly-Request-ID: b4257a227b9e1d340a69445ab14d37a434c5befd
+X-Fastly-Request-ID: 427cb30b506731cc8754ed7f5924d0cd80dc3ce9
 

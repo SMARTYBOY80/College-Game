@@ -147,12 +147,6 @@ class Player(pygame.sprite.Sprite):
         self.y_vel += min(1, (self.fall_count / fps) * self.GRAVITY)
         self.move(self.x_vel, self.y_vel)
 
-        if self.hit:
-            self.hit_count += 1
-        if self.hit_count > fps * 2:
-            self.hit = False
-            self.hit_count = 0
-
         self.fall_count += 1
         self.update_sprite()
 
@@ -402,84 +396,6 @@ def loadLevel(level, block_size, levelCount):
                     print('Finish at (x:', index,', y:', (HEIGHT -block_size * counter) / block_size, ')')
                     
     return object+floor
-                    
-
-async def main(window):
-    pause(window)
-    global jumpHeight, objects, finishedLevel, run
-    jumpHeight = -7
-    finishedLevel = False
-    clock = pygame.time.Clock()
-    background, bg_image = get_background("Blue.png")
-    level = ['levelOne.csv', 'levelTwo.csv', 'levelThree.csv']
-    levelNum = 0
-    block_size = 96
-    jump_active = False
-    jump_timer = 0
-    
-    objects = loadLevel(level, block_size, levelNum)
-    player = Player(100, 100, 50, 50)
-   
-    
-    offset_x = 0
-    scroll_area_width = 200
-
-
-    run = True
-    while run:
-        clock.tick(FPS)
-
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                run = False
-                break
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_SPACE and player.jump_count < 2 or event.key == pygame.K_UP and player.jump_count < 2:
-                    player.jump()
-                if event.key == pygame.K_ESCAPE:    
-                    run = False    
-                    
-        player.loop(FPS)
-
-        handle_move(player, objects)
-        draw(window, background, bg_image, player, objects, offset_x)
-
-        if jump_active:
-            current_time = pygame.time.get_ticks()
-            if current_time - jump_timer > 5000: 
-                jump_active = False
-        
-        if player.rect.y > 800:
-            player.death()
-            player.rect.y = 100
-            player.y_vel = 0
-            player.rect.x = 100
-            offset_x = 0
-            
-
-        if ((player.rect.right - offset_x >= WIDTH - scroll_area_width) and player.x_vel > 0) or ((player.rect.left - offset_x <= scroll_area_width) and player.x_vel < 0):
-            offset_x += player.x_vel
-    
-    if finishedLevel:
-        levelNum += 1
-        
-        Black = (0, 0, 0)
-        pygame.draw.rect(window, Black, (0, 0, 1000, 800))
-        font = pygame.font.Font('freesansbold.ttf', 32)
-  
-        text = font.render(f'well done you won i havent made lvl 2 yet so reset if you want', True, (255, 255, 255))
-        textRect = text.get_rect()
-        textRect.center = (WIDTH // 2, HEIGHT // 2)
-        window.blit(text, textRect)
-        pygame.display.update()
-        pygame.time.wait(5000)
-               
-        #loadLevel(level, 96, levelNum)
-    
-    await asyncio.sleep(0)
-
-        
-
  
 def font(size):
     return pygame.font.Font('freesansbold.ttf', size)  
@@ -599,5 +515,71 @@ def pause(window):
                     sys.exit()
 
         pygame.display.update()
+
+async def main():
+
+    #pause(window)
+    global jumpHeight, objects, finishedLevel, run
+    jumpHeight = -7
+    finishedLevel = False
+    clock = pygame.time.Clock()
+    background, bg_image = get_background("Blue.png")
+    level = ['levelOne.csv', 'levelTwo.csv', 'levelThree.csv']
+    levelNum = 0
+    block_size = 96
+    jump_active = False
+    jump_timer = 0
+    objects = loadLevel(level, block_size, levelNum)
+    player = Player(100, 100, 50, 50)
+   
+    
+    offset_x = 0
+    scroll_area_width = 200
+    run = True
+    while run:
+        clock.tick(FPS)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                run = False
+                break
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE and player.jump_count < 2 or event.key == pygame.K_UP and player.jump_count < 2:
+                    player.jump()
+                #if event.key == pygame.K_ESCAPE:    
+                    #run = False               
+        player.loop(FPS)
+
+        handle_move(player, objects)
+        draw(window, background, bg_image, player, objects, offset_x)
         
-asyncio.run(main(window))
+        if player.rect.y > 800:
+            player.death()
+            player.rect.y = 100
+            player.y_vel = 0
+            player.rect.x = 100
+            offset_x = 0
+
+        if ((player.rect.right - offset_x >= WIDTH - scroll_area_width) and player.x_vel > 0) or ((player.rect.left - offset_x <= scroll_area_width) and player.x_vel < 0):
+            offset_x += player.x_vel
+        await asyncio.sleep(0)
+        
+    if finishedLevel:
+        levelNum += 1
+        
+        Black = (0, 0, 0)
+        pygame.draw.rect(window, Black, (0, 0, 1000, 800))
+        font = pygame.font.Font('freesansbold.ttf', 32)
+  
+        text = font.render(f'well done you won i havent made lvl 2 yet so reset if you want', True, (255, 255, 255))
+        textRect = text.get_rect()
+        textRect.center = (WIDTH // 2, HEIGHT // 2)
+        window.blit(text, textRect)
+        pygame.display.update()
+        pygame.time.wait(5000)
+               
+        #loadLevel(level, 96, levelNum)
+    
+    
+
+      
+asyncio.run(main())
