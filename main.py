@@ -554,7 +554,7 @@ def controls():
         pygame.display.update()   
     
 async def main(window):
-    BG = pygame.image.load("assets/menu/Background.png")
+    BG = pygame.image.load("assets/Menu/Background.png")
     while True:
         window.blit(BG, (0, 0))
         MENU_MOUSE_POS = pygame.mouse.get_pos()
@@ -593,6 +593,8 @@ async def main(window):
                     sys.exit()
 
         pygame.display.update()
+        
+        asyncio.sleep(0)
     
 
 
