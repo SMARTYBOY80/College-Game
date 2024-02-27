@@ -365,7 +365,7 @@ def handle_move(player, objects):
 
 def getLevel(level):
     array = []
-    with open(level , mode ='r') as file:   
+    with open("levels/"+level , mode ='r') as file:   
         for lines in file.readlines():
                 lines = lines.strip('\n')
                 lines = lines.split(',')
@@ -472,7 +472,7 @@ def controls():
 
         pygame.display.update()   
     
-def pause(window):
+async def pause(window):
     BG = pygame.image.load("assets/Menu/Background.png")
     running = True
     while running:
@@ -515,10 +515,11 @@ def pause(window):
                     sys.exit()
 
         pygame.display.update()
+        asyncio.sleep(0)
 
 async def main():
 
-    #pause(window)
+    asyncio.run(pause(window))
     global jumpHeight, objects, finishedLevel, run
     jumpHeight = -7
     finishedLevel = False
@@ -527,8 +528,6 @@ async def main():
     level = ['levelOne.csv', 'levelTwo.csv', 'levelThree.csv']
     levelNum = 0
     block_size = 96
-    jump_active = False
-    jump_timer = 0
     objects = loadLevel(level, block_size, levelNum)
     player = Player(100, 100, 50, 50)
    
