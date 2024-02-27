@@ -6,6 +6,7 @@ import asyncio
 from os import listdir
 from os.path import isfile, join
 import sys
+import time
 #from readLevel import *
 
 pygame.init()
@@ -400,8 +401,8 @@ def loadLevel(level, block_size, levelCount):
 
 def loadText():
     global levelNum
-    level = ""
-    levelRect = ""
+    level = font(35).render("", True, "white")
+    levelRect = level.get_rect(center=(500, 260))
 
     if levelNum == 0:
         level = font(35).render("Use arrows to move and up arrow to jump", True, "white")
@@ -491,7 +492,7 @@ def controls():
 
         pygame.display.update()   
     
-def pause(window):
+async def pause(window):
     BG = pygame.image.load("assets/Menu/Background.png")
     running = True
     while running:
@@ -534,10 +535,10 @@ def pause(window):
                     sys.exit()
 
         pygame.display.update()
+        await asyncio.sleep(0)
 
 async def main():
-
-    pause(window)
+    
     global jumpHeight, objects, finishedLevel, run, levelNum
     jumpHeight = -7
     finishedLevel = False
@@ -551,7 +552,7 @@ async def main():
    
     
     offset_x = 0
-    scroll_area_width = 200
+    scroll_area_width = 400
     run = True
     while run:
         clock.tick(FPS)
@@ -574,7 +575,7 @@ async def main():
             player.rect.y = 100
             player.y_vel = 0
             player.rect.x = 100
-            offset_x = 30
+            offset_x = 0
 
         if ((player.rect.right - offset_x >= WIDTH - scroll_area_width) and player.x_vel > 0) or ((player.rect.left - offset_x <= scroll_area_width) and player.x_vel < 0):
             offset_x += player.x_vel
@@ -582,30 +583,39 @@ async def main():
         if finishedLevel:
             levelNum += 1
             
-            Black = (0, 0, 0)
-            pygame.draw.rect(window, Black, (0, 0, 1000, 800))
-            font = pygame.font.Font('freesansbold.ttf', 32)
-    
-            text = font.render(f'loading...', True, (255, 255, 255))
-            textRect = text.get_rect()
-            textRect.center = (WIDTH // 2, HEIGHT // 2)
-            window.blit(text, textRect)
-            pygame.display.update()
-            asyncio.sleep(2000)
+            if levelNum == len(level):
+                pygame.draw.rect(window, (0,0,0), (0, 0, 1000, 800))
+                font = pygame.font.Font('freesansbold.ttf', 32)
+        
+                text = font.render(f'you won well done', True, (255, 255, 255))               
+                textRect = text.get_rect()
+                
+                textRect.center = (WIDTH // 2, HEIGHT // 2)
+                window.blit(text, textRect)
+                pygame.display.update()
+                time.sleep(2)
+                sys.exit()
+            else:
+                Black = (0, 0, 0)
+                pygame.draw.rect(window, Black, (0, 0, 1000, 800))
+                font = pygame.font.Font('freesansbold.ttf', 32)
+        
+                text = font.render(f'loading...', True, (255, 255, 255))
+                textRect = text.get_rect()
+                textRect.center = (WIDTH // 2, HEIGHT // 2)
+                window.blit(text, textRect)
+                pygame.display.update()
+                asyncio.sleep(2000)
+                objects = loadLevel(level, block_size, levelNum)
 
-            objects = loadLevel(level, block_size, levelNum)
-
-            finishedLevel = False
-            player.rect.y = 100
-            player.y_vel = 0
-            player.rect.x = 100
-            offset_x = 0
-    
+                finishedLevel = False
+                player.rect.y = 100
+                player.y_vel = 0
+                player.rect.x = 100
+                offset_x = 0
         
         await asyncio.sleep(0)
         
     
     
-
-      
 asyncio.run(main())
