@@ -300,9 +300,9 @@ def draw(window, background, bg_image, player, object, offset_x):
     for obj in object:
         obj.draw(window, offset_x)
 
-    level, levelRect = loadText()
+    #level, levelRect = loadText()
 
-    window.blit(level, levelRect)
+    #window.blit(level, levelRect)
 
     player.draw(window, offset_x)
 
@@ -400,18 +400,20 @@ def loadLevel(level, block_size, levelCount):
 
 def loadText():
     global levelNum
-    level = ""
-    levelRect = ""
-
-    if levelNum == 0:
-        level = font(35).render("Use arrows to move and up arrow to jump", True, "white")
-        levelRect = level.get_rect(center=(500, 260))
-    elif levelNum == 1:
-        level = font(35).render("press jump twice to double jump", True, "white")
-        levelRect = level.get_rect(center=(500, 260))
-    elif levelNum == 2:
-        level = font(35).render("you can wall jump by jumping into the wall youll gain a extra jump ", True, "white")
-        levelRect = level.get_rect(center=(500, 260))
+    level = font(35).render("press jump twice to double jump", True, "white")
+    levelRect = "level.get_rect(center=(500, 260))"
+    try:
+        if levelNum == 0:
+            level = font(35).render("Use arrows to move and up arrow to jump", True, "white")
+            levelRect = level.get_rect(center=(500, 260))
+        elif levelNum == 1:
+            level = font(35).render("press jump twice to double jump", True, "white")
+            levelRect = level.get_rect(center=(500, 260))
+        elif levelNum == 2:
+            level = font(35).render("you can wall jump by jumping into the wall youll gain a extra jump ", True, "white")
+            levelRect = level.get_rect(center=(500, 260))
+    except:
+        level = font(45).render("well done you won")
 
 
     return level, levelRect
@@ -551,7 +553,7 @@ async def main():
    
     
     offset_x = 0
-    scroll_area_width = 200
+    scroll_area_width = 700
     run = True
     while run:
         clock.tick(FPS)
