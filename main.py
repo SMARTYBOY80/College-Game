@@ -545,11 +545,11 @@ async def main():
     finishedLevel = False
     clock = pygame.time.Clock()
     background, bg_image = get_background("Blue.png")
-    level = ['tutorialOne.csv','tutorialTwo.csv', 'tutorialThree.csv','levelOne.csv']
+    level = ['tutorialOne.csv','tutorialTwo.csv', 'tutorialThree.csv','levelOne.csv', 'levelTwo.csv']
     levelNum = 0
     block_size = 96
     objects = loadLevel(level, block_size, levelNum)
-    player = Player(100, 100, 50, 50)
+    player = Player(100, 610, 50, 50)
    
     
     offset_x = 0
@@ -573,7 +573,7 @@ async def main():
         
         if player.rect.y > 800:
             player.death()
-            player.rect.y = 100
+            player.rect.y = 610
             player.y_vel = 0
             player.rect.x = 100
             offset_x = 30
@@ -583,25 +583,36 @@ async def main():
         
         if finishedLevel:
             levelNum += 1
-            
-            Black = (0, 0, 0)
-            pygame.draw.rect(window, Black, (0, 0, 1000, 800))
-            font = pygame.font.Font('freesansbold.ttf', 32)
-    
-            text = font.render(f'loading...', True, (255, 255, 255))
-            textRect = text.get_rect()
-            textRect.center = (WIDTH // 2, HEIGHT // 2)
-            window.blit(text, textRect)
-            pygame.display.update()
-            asyncio.sleep(2000)
+            if levelNum == len(level):
+                Black = (0, 0, 0)
+                pygame.draw.rect(window, Black, (0, 0, 1000, 800))
+                font = pygame.font.Font('freesansbold.ttf', 32)
+        
+                text = font.render(f'well done you won the game', True, (255, 255, 255))
+                textRect = text.get_rect()
+                textRect.center = (WIDTH // 2, HEIGHT // 2)
+                window.blit(text, textRect)
+                pygame.display.update()
+                run = False
+            else:
+                Black = (0, 0, 0)
+                pygame.draw.rect(window, Black, (0, 0, 1000, 800))
+                font = pygame.font.Font('freesansbold.ttf', 32)
+        
+                text = font.render(f'loading...', True, (255, 255, 255))
+                textRect = text.get_rect()
+                textRect.center = (WIDTH // 2, HEIGHT // 2)
+                window.blit(text, textRect)
+                pygame.display.update()
+                
 
-            objects = loadLevel(level, block_size, levelNum)
+                objects = loadLevel(level, block_size, levelNum)
 
-            finishedLevel = False
-            player.rect.y = 100
-            player.y_vel = 0
-            player.rect.x = 100
-            offset_x = 0
+                finishedLevel = False
+                player.rect.y = 610
+                player.y_vel = 0
+                player.rect.x = 100
+                offset_x = 0
     
         
         await asyncio.sleep(0)
