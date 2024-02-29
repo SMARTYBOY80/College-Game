@@ -158,6 +158,9 @@ class Player(pygame.sprite.Sprite):
         if self.lifes < 0:
             text = font.render("Game Over", True,(255, 255,255))
             self.lifes =3
+            global levelNum, block_size
+            levelNum = 0
+            objects = loadLevel(level, block_size, levelNum)
         else:    
             text = font.render(f'You Died  lives x{self.lifes}', True, (255, 255, 255))
         textRect = text.get_rect()
@@ -300,9 +303,9 @@ def draw(window, background, bg_image, player, object, offset_x):
     for obj in object:
         obj.draw(window, offset_x)
 
-    #level, levelRect = loadText()
+    level, levelRect = loadText()
 
-    #window.blit(level, levelRect)
+    window.blit(level, levelRect)
 
     player.draw(window, offset_x)
 
@@ -401,7 +404,7 @@ def loadLevel(level, block_size, levelCount):
 def loadText():
     global levelNum
     level = font(35).render("press jump twice to double jump", True, "white")
-    levelRect = "level.get_rect(center=(500, 260))"
+    levelRect = level.get_rect(center=(500, 260))
     try:
         if levelNum == 0:
             level = font(35).render("Use arrows to move and up arrow to jump", True, "white")
@@ -412,8 +415,10 @@ def loadText():
         elif levelNum == 2:
             level = font(35).render("you can wall jump by jumping into the wall youll gain a extra jump ", True, "white")
             levelRect = level.get_rect(center=(500, 260))
+        else:
+            level = font(35).render("")
     except:
-        level = font(45).render("well done you won")
+        level = font(45).render(" ",True, "white")
 
 
     return level, levelRect
@@ -500,6 +505,7 @@ def pause(window):
         
     
         window.blit(BG, (0, 0))
+        pygame.display.update()
         MENU_MOUSE_POS = pygame.mouse.get_pos()
 
         MENU_TEXT = font(100).render("MAIN MENU", True, "#b68f40")
@@ -515,6 +521,8 @@ def pause(window):
                             text_input="QUIT", font=font(75), base_color="#d7fcd4", hovering_color="White")
 
         window.blit(MENU_TEXT, MENU_RECT)
+
+        
 
         for button in [PLAY_BUTTON, OPTIONS_BUTTON, CONTROLS_BUTTON, QUIT_BUTTON]:
             button.changeColor(MENU_MOUSE_POS)
@@ -535,12 +543,12 @@ def pause(window):
                     pygame.quit()
                     sys.exit()
 
-        pygame.display.update()
+        
 
 async def main():
 
-    pause(window)
-    global jumpHeight, objects, finishedLevel, run, levelNum
+    #pause(window)
+    global jumpHeight, objects, finishedLevel, run, levelNum, block_size
     jumpHeight = -7
     finishedLevel = False
     clock = pygame.time.Clock()
