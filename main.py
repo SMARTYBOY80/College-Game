@@ -15,9 +15,11 @@ pygame.display.set_caption("Platformer")
 WIDTH, HEIGHT = 1000, 800
 FPS = 60
 PLAYER_VEL = 5
-level = 'levelOne.csv'
 global window, Sprite
 window = pygame.display.set_mode((WIDTH, HEIGHT))
+backgroundMusic = pygame.mixer.music.load("assets/music/Background.ogg")
+pygame.mixer.music.set_volume(0.4)
+pygame.mixer.music.play(-1)
 
 
 def flip(sprites):
@@ -158,9 +160,15 @@ class Player(pygame.sprite.Sprite):
         if self.lifes < 0:
             text = font.render("Game Over", True,(255, 255,255))
             self.lifes =3
-            global levelNum, block_size
+            global levelNum, block_size, objects, level
             levelNum = 0
+            
             objects = loadLevel(level, block_size, levelNum)
+
+            self.rect.y = 610
+            self.y_vel = 0
+            self.rect.x = 100
+
         else:    
             text = font.render(f'You Died  lives x{self.lifes}', True, (255, 255, 255))
         textRect = text.get_rect()
@@ -548,7 +556,7 @@ def pause(window):
 async def main():
 
     #pause(window)
-    global jumpHeight, objects, finishedLevel, run, levelNum, block_size
+    global jumpHeight, objects, finishedLevel, run, levelNum, block_size, level
     jumpHeight = -7
     finishedLevel = False
     clock = pygame.time.Clock()
