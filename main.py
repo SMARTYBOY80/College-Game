@@ -116,12 +116,13 @@ class Player(pygame.sprite.Sprite):
         self.hit_count = 0
         self.lifes = 3
         self.timesDone = 0
+        self.jumpHeight = -7
 
     def jump(self):
         if collide(self, objects, PLAYER_VEL * 2) != None and self.timesDone == 0 or collide(self, objects, -PLAYER_VEL * 2) != None and self.timesDone == 0:
             self.jump_count = 0
             self.timesDone += 1
-        self.y_vel = jumpHeight
+        self.y_vel = self.jumpHeight
         self.animation_count = 0
         self.jump_count += 1
         self.fall_count = 0
@@ -323,7 +324,9 @@ def draw(window, background, bg_image, player, object, offset_x):
 def handle_vertical_collision(player, objects, dy):
     collided_objects = []
     for obj in objects:
-        if pygame.sprite.collide_mask(player, obj):
+        if obj.name == "apple":
+            pass
+        elif pygame.sprite.collide_mask(player, obj):
             if dy > 0:
                 player.rect.bottom = obj.rect.top
                 player.landed()
@@ -361,17 +364,24 @@ def handle_move(player, objects):
         player.move_left(PLAYER_VEL)
     if keys[pygame.K_RIGHT] and not collide_right:
         player.move_right(PLAYER_VEL)
-        
+
 
     vertical_collide = handle_vertical_collision(player, objects, player.y_vel)
-    to_check = [collide_left, collide_right, *vertical_collide]
+    if collide_left == collide_right:
+        collide_left = None
+    to_check = [collide_left, collide_right]#, *vertical_collide]
 
     for obj in to_check:
         if obj and obj.name == "finish":
             global finishedLevel
             finishedLevel = True
             print('Finished Level')
-            
+        if obj and obj.name == "apple":
+            player.jumpHeight = -10.4
+            print(obj)
+            print(to_check)
+            objects.remove(obj)
+
 
     
 
@@ -402,9 +412,10 @@ def loadLevel(level, block_size, levelCount):
                     count += 1
                 elif array[counter][index] == '3':
                     object.append(Block(block_size * (index), HEIGHT - block_size * (counter +2), block_size))
-
                 elif array[counter][index] == '4':
                     object.append(Finish(block_size * (index), HEIGHT - block_size * (counter +2), 124, 124))
+                elif array[counter][index] == '5':
+                    object.append(Apple(block_size * (index), HEIGHT - block_size * (counter +2), 64, 64))
                     
     return object+floor
 
@@ -599,6 +610,7 @@ async def main():
         
         if finishedLevel:
             levelNum += 1
+            player.jumpHeight = -7
             if levelNum == len(level):
                 Black = (0, 0, 0)
                 pygame.draw.rect(window, Black, (0, 0, 1000, 800))
