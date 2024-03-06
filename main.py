@@ -60,7 +60,7 @@ def get_block(size):
     return pygame.transform.scale2x(surface)
 
 def get_apple(size):
-    path = join("assets", "Items", "Powerups", "Apple", "Apple.png")
+    path = "assets/Items/PowerUps/Apple/Apple.png"
     image = pygame.image.load(path).convert_alpha()
     surface = pygame.Surface((size, size), pygame.SRCALPHA, 32)
     rect = pygame.Rect(0, 0, size, size)
@@ -163,6 +163,7 @@ class Player(pygame.sprite.Sprite):
             self.lifes =3
             global levelNum, block_size, objects, level
             levelNum = 0
+            Player.jumphight = -7
             
             objects = loadLevel(level, block_size, levelNum)
 
@@ -274,7 +275,6 @@ class Apple(Object):
 
     def __init__(self, x, y, width, height):
         super().__init__(x, y, width, height, "apple")
-        self.apple = load_sprite_sheets("Items\\Powerups", "Apple", width, height)
         block = get_apple(32)
         self.image.blit(block, (0, 0))
         self.mask = pygame.mask.from_surface(self.image)
@@ -432,7 +432,10 @@ def loadText():
             level = font(35).render("press jump twice to double jump", True, "white")
             levelRect = level.get_rect(center=(500, 260))
         elif levelNum == 2:
-            level = font(35).render("you can wall jump by jumping into the wall youll gain a extra jump ", True, "white")
+            level = font(30).render("you can wall jump by jumping into the wall youll gain a extra jump ", True, "white")
+            levelRect = level.get_rect(center=(500, 260))
+        elif levelNum == 3:
+            level = font(35).render("you can eat an apple to jump higher", True, "white")
             levelRect = level.get_rect(center=(500, 260))
         else:
             level = font(35).render("")
@@ -572,7 +575,7 @@ async def main():
     finishedLevel = False
     clock = pygame.time.Clock()
     background, bg_image = get_background("Blue.png")
-    level = ['tutorialOne.csv','tutorialTwo.csv', 'tutorialThree.csv','levelOne.csv', 'levelTwo.csv']
+    level = ['tutorialOne.csv','tutorialTwo.csv', 'tutorialThree.csv', 'tutorialFour.csv', 'levelOne.csv', 'levelTwo.csv']
     levelNum = 0
     block_size = 96
     objects = loadLevel(level, block_size, levelNum)
