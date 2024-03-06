@@ -607,8 +607,8 @@ async def main():
 
         if ((player.rect.right - offset_x >= WIDTH - scroll_area_width) and player.x_vel > 0) or ((player.rect.left - offset_x <= scroll_area_width) and player.x_vel < 0):
             offset_x += player.x_vel
-        
-        if finishedLevel:
+        #
+        if finishedLevel: 
             levelNum += 1
             player.jumpHeight = -7
             if levelNum == len(level):
