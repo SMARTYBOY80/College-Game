@@ -14,7 +14,7 @@ pygame.display.set_caption("Platformer")
 
 WIDTH, HEIGHT = 1000, 800
 FPS = 60
-PLAYER_VEL = 5
+
 global window, Sprite
 window = pygame.display.set_mode((WIDTH, HEIGHT))
 backgroundMusic = pygame.mixer.music.load("assets/music/Background.ogg")
@@ -67,6 +67,14 @@ def get_apple(size):
     surface.blit(image, (0, 0), rect)
     return pygame.transform.scale2x(surface)
 
+def get_strawberry(size):
+    path = "assets/Items/PowerUps/strawberry/Strawberry.png"
+    image = pygame.image.load(path).convert_alpha()
+    surface = pygame.Surface((size, size), pygame.SRCALPHA, 32)
+    rect = pygame.Rect(0, 0, size, size)
+    surface.blit(image, (0, 0), rect)
+    return pygame.transform.scale2x(surface)
+
 def get_finish(size):
     path = join("assets", "finish.png")
     image = pygame.image.load(path).convert_alpha()
@@ -101,6 +109,7 @@ class Player(pygame.sprite.Sprite):
     GRAVITY = 1
     SPRITES = load_sprite_sheets("MainCharacters", "NinjaFrog", 32, 32, True)
     ANIMATION_DELAY = 3
+    
 
     def __init__(self, x, y, width, height):
         super().__init__()
@@ -117,9 +126,10 @@ class Player(pygame.sprite.Sprite):
         self.lifes = 3
         self.timesDone = 0
         self.jumpHeight = -7
+        self.vel = 5
 
     def jump(self):
-        if collide(self, objects, PLAYER_VEL * 2) != None and self.timesDone == 0 or collide(self, objects, -PLAYER_VEL * 2) != None and self.timesDone == 0:
+        if collide(self, objects, self.vel * 2) != None and self.timesDone == 0 or collide(self, objects, -self.vel * 2) != None and self.timesDone == 0:
             self.jump_count = 0
             self.timesDone += 1
         self.y_vel = self.jumpHeight
@@ -278,6 +288,14 @@ class Apple(Object):
         block = get_apple(32)
         self.image.blit(block, (0, 0))
         self.mask = pygame.mask.from_surface(self.image)
+
+class Strawberry(Object):
+
+    def __init__(self, x, y, width, height):
+        super().__init__(x, y, width, height, "strawberry")
+        block = get_strawberry(32)
+        self.image.blit(block, (0, 0))
+        self.mask = pygame.mask.from_surface(self.image)
         
         
 class Finish(Object):
@@ -324,7 +342,7 @@ def draw(window, background, bg_image, player, object, offset_x):
 def handle_vertical_collision(player, objects, dy):
     collided_objects = []
     for obj in objects:
-        if obj.name == "apple":
+        if obj.name == "apple" or obj.name == "strawberry":
             pass
         elif pygame.sprite.collide_mask(player, obj):
             if dy > 0:
@@ -357,16 +375,16 @@ def handle_move(player, objects):
     keys = pygame.key.get_pressed()
 
     player.x_vel = 0
-    collide_left = collide(player, objects, -PLAYER_VEL * 2)
-    collide_right = collide(player, objects, PLAYER_VEL * 2)
+    collide_left = collide(player, objects, -player.vel * 2)
+    collide_right = collide(player, objects, player.vel * 2)
 
     if keys[pygame.K_LEFT] and not collide_left:
-        player.move_left(PLAYER_VEL)
+        player.move_left(player.vel)
     if keys[pygame.K_RIGHT] and not collide_right:
-        player.move_right(PLAYER_VEL)
+        player.move_right(player.vel)
 
 
-    vertical_collide = handle_vertical_collision(player, objects, player.y_vel)
+    handle_vertical_collision(player, objects, player.y_vel)
     if collide_left == collide_right:
         collide_left = None
     to_check = [collide_left, collide_right]#, *vertical_collide]
@@ -381,7 +399,10 @@ def handle_move(player, objects):
             print(obj)
             print(to_check)
             objects.remove(obj)
-
+        elif obj and obj.name == "strawberry":
+            player.vel = 7
+            objects.remove(obj)
+        
 
     
 
@@ -416,6 +437,8 @@ def loadLevel(level, block_size, levelCount):
                     object.append(Finish(block_size * (index), HEIGHT - block_size * (counter +2), 124, 124))
                 elif array[counter][index] == '5':
                     object.append(Apple(block_size * (index), HEIGHT - block_size * (counter +2), 64, 64))
+                elif array[counter][index] == '6':
+                    object.append(Strawberry(block_size * (index), HEIGHT - block_size * (counter +2), 64, 64))
                     
     return object+floor
 
@@ -575,7 +598,7 @@ async def main():
     finishedLevel = False
     clock = pygame.time.Clock()
     background, bg_image = get_background("Blue.png")
-    level = ['tutorialOne.csv','tutorialTwo.csv', 'tutorialThree.csv', 'tutorialFour.csv', 'levelOne.csv', 'levelTwo.csv']
+    level = ['tutorialOne.csv','tutorialTwo.csv', 'tutorialThree.csv', 'tutorialFour.csv', 'tutorialFive.csv' , 'levelOne.csv', 'levelTwo.csv']
     levelNum = 0
     block_size = 96
     objects = loadLevel(level, block_size, levelNum)
@@ -644,6 +667,7 @@ async def main():
                 player.y_vel = 0
                 player.rect.x = 100
                 offset_x = 0
+                player.vel = 5
     
         
         await asyncio.sleep(0)
