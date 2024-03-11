@@ -76,7 +76,7 @@ def get_strawberry(size):
     return pygame.transform.scale2x(surface)
 
 def get_finish(size):
-    path = join("assets", "finish.png")
+    path = join("assets", "collegeFinish.png")
     image = pygame.image.load(path).convert_alpha()
     surface = pygame.Surface((size, size), pygame.SRCALPHA, 32)
     rect = pygame.Rect(0, 0, size, size)
@@ -440,6 +440,7 @@ def loadLevel(level, block_size, levelCount):
                 elif array[counter][index] == '6':
                     object.append(Strawberry(block_size * (index), HEIGHT - block_size * (counter +2), 64, 64))
                     
+                    
     return object+floor
 
 
@@ -448,7 +449,9 @@ def loadText():
     level = font(35).render("press jump twice to double jump", True, "white")
     levelRect = level.get_rect(center=(500, 260))
     try:
-        if levelNum == 0:
+        if levelNum >4:
+            level = font(35).render("", True, "white")
+        elif levelNum == 0:
             level = font(35).render("Use arrows to move and up arrow to jump", True, "white")
             levelRect = level.get_rect(center=(500, 260))
         elif levelNum == 1:
@@ -460,6 +463,10 @@ def loadText():
         elif levelNum == 3:
             level = font(35).render("you can eat an apple to jump higher", True, "white")
             levelRect = level.get_rect(center=(500, 260))
+        elif levelNum == 4:
+            level = font(35).render("you can eat an strawberry to run faster", True, "white")
+            levelRect = level.get_rect(center=(500, 260))
+
         else:
             level = font(35).render("")
     except:
